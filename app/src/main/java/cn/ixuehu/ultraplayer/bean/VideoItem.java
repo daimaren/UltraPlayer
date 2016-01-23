@@ -3,12 +3,14 @@ package cn.ixuehu.ultraplayer.bean;
 import android.database.Cursor;
 import android.provider.MediaStore;
 
+import java.io.Serializable;
+
 /**
  * 项目名：UltraPlayer
  * 包名：cn.ixuehu.ultraplayer.bean
  * Created by daimaren on 2016/1/22.
  */
-public class VideoItem {
+public class VideoItem implements Serializable {
     private long size;
     private String title;
     private long duration;
@@ -54,5 +56,11 @@ public class VideoItem {
 
     public void setPath(String path) {
         this.path = path;
+    }
+
+    @Override
+    public String toString() {
+        return "VideoItem [size=" + size + ", title=" + title + ", duration="
+                + duration + ", path=" + path + "]";
     }
 }

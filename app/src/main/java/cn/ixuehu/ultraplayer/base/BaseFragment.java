@@ -1,5 +1,6 @@
 package cn.ixuehu.ultraplayer.base;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -25,7 +26,7 @@ public abstract class BaseFragment extends Fragment implements View.OnClickListe
     protected abstract void processClick(View view);
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+    public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         initListener();
         initData();
@@ -34,5 +35,29 @@ public abstract class BaseFragment extends Fragment implements View.OnClickListe
     @Override
     public void onClick(View view) {
 
+    }
+
+    /**
+     * 不带数据
+     * @param targetActivity
+     */
+    protected void enterActivity(Class<?> targetActivity)
+    {
+        //Activity跳转
+        Intent intent = new Intent(getActivity(),targetActivity);
+        startActivity(intent);
+    }
+
+    /**
+     * 带数据
+     * @param targetActivity
+     * @param bundle
+     */
+    protected void enterActivity(Class<?> targetActivity,Bundle bundle)
+    {
+        //Activity跳转
+        Intent intent = new Intent(getActivity(),targetActivity);
+        intent.putExtras(bundle);
+        startActivity(intent);
     }
 }

@@ -1,5 +1,6 @@
 package cn.ixuehu.ultraplayer.ui.Fragment;
 
+import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
@@ -11,7 +12,9 @@ import android.widget.ListView;
 import cn.ixuehu.ultraplayer.R;
 import cn.ixuehu.ultraplayer.adapter.VideoListAdapter;
 import cn.ixuehu.ultraplayer.base.BaseFragment;
+import cn.ixuehu.ultraplayer.bean.VideoItem;
 import cn.ixuehu.ultraplayer.db.SimpleQueryHandler;
+import cn.ixuehu.ultraplayer.ui.activity.VideoPlayerActivity;
 
 /**
  * 项目名：UltraPlayer
@@ -32,7 +35,13 @@ public class VideoListFragment extends BaseFragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                //点击事件
+                //点击事件,界面跳转，传递视频数据
+                Cursor cursor = (Cursor) adapter.getItem(i);
+                VideoItem videoItem = VideoItem.fromCursor(cursor);
+
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("VideoItem", videoItem);
+                enterActivity(VideoPlayerActivity.class,bundle);
             }
         });
     }
