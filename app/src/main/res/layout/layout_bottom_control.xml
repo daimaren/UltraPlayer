@@ -30,7 +30,7 @@
             android:layout_marginRight="5dp"
             android:maxHeight="6dp"
             android:minHeight="6dp"
-            android:background="@drawable/video_progress_drawable"
+            android:progressDrawable="@drawable/video_progress_drawable"
             android:thumb="@drawable/progress_thumb"
             />
         <TextView
@@ -55,31 +55,31 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:src="@drawable/selector_btn_exit"/>
+            android:background="@drawable/selector_btn_exit"/>
         <ImageView
             android:id="@+id/btn_pre"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:src="@drawable/selector_btn_pre"/>
+            android:background="@drawable/selector_btn_pre"/>
         <ImageView
             android:id="@+id/btn_play"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:src="@drawable/selector_btn_pause"/>
+            android:background="@drawable/selector_btn_pause"/>
         <ImageView
             android:id="@+id/btn_next"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:src="@drawable/selector_btn_next"/>
+            android:background="@drawable/selector_btn_next"/>
         <ImageView
             android:id="@+id/btn_screen"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:src="@drawable/selector_btn_fullscreen"/>
+            android:background="@drawable/selector_btn_fullscreen"/>
 
     </LinearLayout>
 

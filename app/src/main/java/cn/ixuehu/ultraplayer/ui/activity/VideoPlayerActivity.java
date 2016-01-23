@@ -9,6 +9,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -18,7 +19,6 @@ import android.widget.VideoView;
 import cn.ixuehu.ultraplayer.R;
 import cn.ixuehu.ultraplayer.base.BaseActivity;
 import cn.ixuehu.ultraplayer.bean.VideoItem;
-import cn.ixuehu.ultraplayer.util.LogUtil;
 import cn.ixuehu.ultraplayer.util.StringUtil;
 
 /**
@@ -40,6 +40,7 @@ public class VideoPlayerActivity extends BaseActivity{
     private BroadcastReceiver broadcastReceiver;
 
     private final int MESSAGE_UPDATE_TIME = 0;
+    private final int MESSAGE_UPDATE_VIDEO = 1;
     Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message message) {
@@ -47,6 +48,9 @@ public class VideoPlayerActivity extends BaseActivity{
             {
                 case MESSAGE_UPDATE_TIME:
                     updateSymTime();
+                    break;
+                case MESSAGE_UPDATE_VIDEO:
+                    updateVideoProgress();
                     break;
             }
             return false;
@@ -56,6 +60,9 @@ public class VideoPlayerActivity extends BaseActivity{
     private int streamMaxVolume;
     private int currentVolume;
     private boolean isMute = false;
+    private int downY;
+    private int screenHeight;
+    private int screenWidth;
     @Override
     protected void initView() {
         setContentView(R.layout.activity_video_player);
@@ -108,11 +115,33 @@ public class VideoPlayerActivity extends BaseActivity{
 
             }
         });
+        play_seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                if (b)
+                {
+                    //改变视频进度条
+                    videoView.seekTo(i);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
     }
 
     @Override
     protected void initData() {
-        VideoItem videoItem = (VideoItem) getIntent().getExtras().getSerializable("VideoItem");
+        screenHeight = getWindowManager().getDefaultDisplay().getHeight();
+        screenWidth = getWindowManager().getDefaultDisplay().getWidth();
+        final VideoItem videoItem = (VideoItem) getIntent().getExtras().getSerializable("VideoItem");
         registerBatteryBroadcastReceiver();
         //设置标题
         tv_name.setText(videoItem.getTitle());
@@ -124,9 +153,17 @@ public class VideoPlayerActivity extends BaseActivity{
             @Override
             public void onPrepared(MediaPlayer mediaPlayer) {
                 videoView.start();
+                //初始化播放进度条
+                play_seekbar.setMax(videoView.getDuration());
+                updateVideoProgress();
             }
         });
         //videoView.setMediaController(new MediaController());
+    }
+    private void updateVideoProgress()
+    {
+        play_seekbar.setProgress(videoView.getCurrentPosition());
+        handler.sendEmptyMessageDelayed(MESSAGE_UPDATE_VIDEO,1000);
     }
 
     /**
@@ -147,7 +184,7 @@ public class VideoPlayerActivity extends BaseActivity{
             @Override
             public void onReceive(Context context, Intent intent) {
                 int level = intent.getIntExtra("level", 0);
-                LogUtil.e(this,"level"+level);
+                //LogUtil.e("level","level"+level);
                 updateBatteryStatus(level);
             }
         };
@@ -183,10 +220,12 @@ public class VideoPlayerActivity extends BaseActivity{
                 if (videoView.isPlaying())
                 {
                     videoView.pause();
+                    handler.removeMessages(MESSAGE_UPDATE_VIDEO);
                 }
                 else
                 {
                     videoView.start();
+                    handler.sendEmptyMessageDelayed(MESSAGE_UPDATE_VIDEO,1000);
                 }
                 updatePlayBtnBg();
                 break;
@@ -223,5 +262,47 @@ public class VideoPlayerActivity extends BaseActivity{
         }
     }
 
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        int action = event.getAction();
+        switch (action)
+        {
+            case MotionEvent.ACTION_DOWN:
+                downY = (int) (event.getY() + 0.5f);
+                break;
+            case MotionEvent.ACTION_MOVE:
+                int moveY = (int) (event.getY() + 0.5f);
+                int diffY = moveY - downY;
+                if (Math.abs(diffY) < 15)
+                    break;
+                //找到最小的
+                int totalDistance = Math.min(screenHeight, screenWidth);
+                float movePercent = Math.abs(diffY)/totalDistance;
+                float moveVolume = movePercent * streamMaxVolume;//是特别小的一个值
+                if (moveVolume < 0)
+                {
+                    currentVolume += 1;
+                }
+                else
+                {
+                    currentVolume -= 1;
+                }
+                isMute = false;
+                updateVolume();
+                downY = moveY;
+                break;
+            case MotionEvent.ACTION_UP:
+                break;
+            default:
+                break;
+        }
+        return super.onTouchEvent(event);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        handler.removeCallbacksAndMessages(null);
+        unregisterReceiver(broadcastReceiver);
     }
 }
