@@ -9,7 +9,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:background="@drawable/bg_player_top_control"
+        android:background="@drawable/bg_player_status"
         android:padding="5dp">
         <TextView
             android:id="@+id/tv_name"
@@ -54,7 +54,7 @@
             android:layout_marginRight="15dp"
             android:maxHeight="6dp"
             android:minHeight="6dp"
-            android:background="@drawable/progress_background"
+            android:background="@drawable/video_progress_drawable"
             android:thumb="@drawable/progress_thumb"
             />
     </LinearLayout>
