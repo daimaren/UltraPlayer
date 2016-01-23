@@ -16,6 +16,8 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.VideoView;
 
+import java.util.ArrayList;
+
 import cn.ixuehu.ultraplayer.R;
 import cn.ixuehu.ultraplayer.base.BaseActivity;
 import cn.ixuehu.ultraplayer.bean.VideoItem;
@@ -63,6 +65,8 @@ public class VideoPlayerActivity extends BaseActivity{
     private int downY;
     private int screenHeight;
     private int screenWidth;
+    private ArrayList<VideoItem> arrayList;
+    private int currentPosition;
     @Override
     protected void initView() {
         setContentView(R.layout.activity_video_player);
@@ -94,9 +98,8 @@ public class VideoPlayerActivity extends BaseActivity{
         volumn_seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                if (b)
-                {
-                    isMute =false;
+                if (b) {
+                    isMute = false;
                     //是认为修改
                     seekBar.setProgress(i);
                     currentVolume = i;
@@ -135,35 +138,76 @@ public class VideoPlayerActivity extends BaseActivity{
 
             }
         });
+        videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mediaPlayer) {
+                //播放完成
+                btn_play.setBackgroundResource(R.drawable.selector_btn_play);
+                //停止进度条更新
+                play_seekbar.setProgress(videoView.getDuration());
+                handler.removeMessages(MESSAGE_UPDATE_VIDEO);
+            }
+        });
     }
 
     @Override
     protected void initData() {
         screenHeight = getWindowManager().getDefaultDisplay().getHeight();
         screenWidth = getWindowManager().getDefaultDisplay().getWidth();
-        final VideoItem videoItem = (VideoItem) getIntent().getExtras().getSerializable("VideoItem");
+
+        //final VideoItem videoItem = (VideoItem) getIntent().getExtras().getSerializable("VideoItem");
+        arrayList = (ArrayList<VideoItem>) getIntent().getExtras().getSerializable("videoList");
+        currentPosition = getIntent().getIntExtra("currentPosition",1);
+
         registerBatteryBroadcastReceiver();
-        //设置标题
-        tv_name.setText(videoItem.getTitle());
+
         updateSymTime();
         initVolume();
-        //播放视频
-        videoView.setVideoURI(Uri.parse(videoItem.getPath()));
+
         videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mediaPlayer) {
                 videoView.start();
                 //初始化播放进度条
                 play_seekbar.setMax(videoView.getDuration());
+                tv_current_position.setText("00:00");
+                tv_total_time.setText(StringUtil.formatVideoDuration(videoView.getDuration()));
                 updateVideoProgress();
             }
         });
         //videoView.setMediaController(new MediaController());
     }
+
+    /**
+     * 播放指定序号的视频
+     * @param position
+     */
+    private void playVideo(int position)
+    {
+        //判断是否为空
+        if (arrayList == null || arrayList.size() == 0)
+        {
+            //退出界面
+            finish();
+            return;
+        }
+        VideoItem videoItem = arrayList.get(position);
+        //设置标题
+        tv_name.setText(videoItem.getTitle());
+        //播放视频
+        videoView.setVideoURI(Uri.parse(videoItem.getPath()));
+
+        //使能上一个、下一个
+        /*btn_next.setVisibility(View.VISIBLE);
+        btn_pre.setVisibility(View.VISIBLE);*/
+        btn_pre.setEnabled(position != 0);
+        btn_next.setEnabled(position != arrayList.size() - 1);
+    }
     private void updateVideoProgress()
     {
         play_seekbar.setProgress(videoView.getCurrentPosition());
-        handler.sendEmptyMessageDelayed(MESSAGE_UPDATE_VIDEO,1000);
+        tv_current_position.setText(StringUtil.formatVideoDuration(videoView.getCurrentPosition()));
+        handler.sendEmptyMessageDelayed(MESSAGE_UPDATE_VIDEO, 1000);
     }
 
     /**
@@ -236,6 +280,23 @@ public class VideoPlayerActivity extends BaseActivity{
         }
     }
 
+    /**
+     * 播放上一个
+     */
+    private void playPre()
+    {
+
+    }
+    /**
+     * 播放下一个
+     */
+    private void playNext()
+    {
+        if (currentPosition == (arrayList.size() - 1))
+            return;
+        currentPosition++;
+        playVideo(currentPosition);
+    }
     /**
      * 更新播放按钮背景
      */

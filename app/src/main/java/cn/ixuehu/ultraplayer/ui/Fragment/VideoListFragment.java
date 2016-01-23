@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import java.util.ArrayList;
+
 import cn.ixuehu.ultraplayer.R;
 import cn.ixuehu.ultraplayer.adapter.VideoListAdapter;
 import cn.ixuehu.ultraplayer.base.BaseFragment;
@@ -37,13 +39,25 @@ public class VideoListFragment extends BaseFragment {
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 //点击事件,界面跳转，传递视频数据
                 Cursor cursor = (Cursor) adapter.getItem(i);
-                VideoItem videoItem = VideoItem.fromCursor(cursor);
+                //VideoItem videoItem = VideoItem.fromCursor(cursor);
+                ArrayList<VideoItem> arrayList = cursorToList(cursor);
 
                 Bundle bundle = new Bundle();
-                bundle.putSerializable("VideoItem", videoItem);
+                bundle.putInt("currentPosition",i);
+                bundle.putSerializable("videoList", arrayList);
                 enterActivity(VideoPlayerActivity.class,bundle);
             }
         });
+    }
+    private ArrayList<VideoItem> cursorToList(Cursor cursor)
+    {
+        ArrayList<VideoItem> arrayList = new ArrayList<VideoItem>();
+        cursor.moveToPosition(-1);
+        while (cursor.moveToNext())
+        {
+            arrayList.add(VideoItem.fromCursor(cursor));
+        }
+        return arrayList;
     }
 
     @Override
