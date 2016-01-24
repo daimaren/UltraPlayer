@@ -1,5 +1,6 @@
 package cn.ixuehu.ultraplayer.ui.activity;
 
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -9,18 +10,23 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.VideoView;
+
+import com.nineoldandroids.view.ViewPropertyAnimator;
 
 import java.util.ArrayList;
 
 import cn.ixuehu.ultraplayer.R;
 import cn.ixuehu.ultraplayer.base.BaseActivity;
 import cn.ixuehu.ultraplayer.bean.VideoItem;
+import cn.ixuehu.ultraplayer.ui.view.VideoView;
 import cn.ixuehu.ultraplayer.util.StringUtil;
 
 /**
@@ -30,19 +36,24 @@ import cn.ixuehu.ultraplayer.util.StringUtil;
  */
 public class VideoPlayerActivity extends BaseActivity{
     private VideoView videoView;
+    //顶部控制控件
     private ImageView btn_exit,btn_pre,btn_play,btn_next,btn_screen;
     private TextView tv_name,tv_time;
     private ImageView iv_battery;
     private ImageView iv_volume;
     private SeekBar volumn_seekbar;
+    private LinearLayout ll_top_control;
     //底部控制面板控件
     private TextView tv_current_position,tv_total_time;
     private SeekBar play_seekbar;
+    private LinearLayout ll_bottom_control;
+    //广播
     private IntentFilter intentFilter;
     private BroadcastReceiver broadcastReceiver;
 
     private final int MESSAGE_UPDATE_TIME = 0;
     private final int MESSAGE_UPDATE_VIDEO = 1;
+    private final int MESSAGE_HIDE_CONTROL = 2;
     Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message message) {
@@ -53,6 +64,11 @@ public class VideoPlayerActivity extends BaseActivity{
                     break;
                 case MESSAGE_UPDATE_VIDEO:
                     updateVideoProgress();
+                    break;
+                case MESSAGE_HIDE_CONTROL:
+                    hideControl();
+                    break;
+                default:
                     break;
             }
             return false;
@@ -67,6 +83,10 @@ public class VideoPlayerActivity extends BaseActivity{
     private int screenWidth;
     private ArrayList<VideoItem> arrayList;
     private int currentPosition;
+    //手势检测
+    private GestureDetector gestureDetector;
+    private boolean isShowControl = false;
+    private boolean isScreen = false;
     @Override
     protected void initView() {
         setContentView(R.layout.activity_video_player);
@@ -85,6 +105,9 @@ public class VideoPlayerActivity extends BaseActivity{
         tv_current_position = (TextView) findViewById(R.id.tv_current_position);
         tv_total_time = (TextView) findViewById(R.id.tv_total_time);
         play_seekbar = (SeekBar) findViewById(R.id.play_seekbar);
+        //线性布局
+        ll_top_control = (LinearLayout) findViewById(R.id.ll_top_control);
+        ll_bottom_control = (LinearLayout) findViewById(R.id.ll_bottom_control);
     }
 
     @Override
@@ -95,6 +118,27 @@ public class VideoPlayerActivity extends BaseActivity{
         btn_play.setOnClickListener(this);
         btn_next.setOnClickListener(this);
         btn_screen.setOnClickListener(this);
+        //View和自己的子View全部完成时回调此方法
+        ll_top_control.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                //及时移除监听器，是因为只要某个子view的宽高改变或者layout改变都会引起该方法回调
+                ll_top_control.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                //隐藏顶部控制界面(使用属性动画)
+                ViewPropertyAnimator.animate(ll_top_control).translationY(-ll_top_control.getHeight()).setDuration(0);
+            }
+        });
+        //View和自己的子View全部完成时回调此方法
+        ll_bottom_control.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                //及时移除监听器，是因为只要某个子view的宽高改变或者layout改变都会引起该方法回调
+                ll_bottom_control.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                //隐藏底部控制界面
+                ViewPropertyAnimator.animate(ll_bottom_control).translationY(ll_bottom_control.getHeight()).setDuration(0);
+            }
+        });
+
         volumn_seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
@@ -110,11 +154,12 @@ public class VideoPlayerActivity extends BaseActivity{
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-
+                handler.removeMessages(MESSAGE_HIDE_CONTROL);
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
+                handler.sendEmptyMessageDelayed(MESSAGE_HIDE_CONTROL,5000)
 
             }
         });
@@ -152,6 +197,7 @@ public class VideoPlayerActivity extends BaseActivity{
 
     @Override
     protected void initData() {
+        gestureDetector = new GestureDetector(this,new MyGetsureListener());
         screenHeight = getWindowManager().getDefaultDisplay().getHeight();
         screenWidth = getWindowManager().getDefaultDisplay().getWidth();
 
@@ -168,6 +214,8 @@ public class VideoPlayerActivity extends BaseActivity{
             @Override
             public void onPrepared(MediaPlayer mediaPlayer) {
                 videoView.start();
+                //播放按钮变暂停
+                btn_play.setBackgroundResource(R.drawable.selector_btn_pause);
                 //初始化播放进度条
                 play_seekbar.setMax(videoView.getDuration());
                 tv_current_position.setText("00:00");
@@ -177,7 +225,59 @@ public class VideoPlayerActivity extends BaseActivity{
         });
         //videoView.setMediaController(new MediaController());
     }
+    class MyGetsureListener extends GestureDetector.SimpleOnGestureListener
+    {
+        @Override
+        public boolean onSingleTapConfirmed(MotionEvent e) {
+            //单击,隐藏显示控制界面
+            if (isShowControl)
+            {
+                hideControl();
+            }
+            else
+            {
+                showControl();
+            }
+            return super.onSingleTapConfirmed(e);
+        }
 
+        @Override
+        public void onLongPress(MotionEvent e) {
+            //长按播放
+            processClick(btn_play);
+            super.onLongPress(e);
+        }
+
+        @Override
+        public boolean onDoubleTap(MotionEvent e) {
+            //双击全屏
+            processClick(btn_screen);
+            return super.onDoubleTap(e);
+        }
+    }
+
+    /**
+     * 隐藏控制界面
+     */
+    private void hideControl()
+    {
+        ViewPropertyAnimator.animate(ll_top_control).translationY(0).setDuration(200);
+        ViewPropertyAnimator.animate(ll_top_control).translationY(0).setDuration(200);
+        isShowControl = false;
+    }
+
+    /**
+     * 显示控制界面
+     */
+    private void showControl()
+    {
+        ViewPropertyAnimator.animate(ll_top_control).translationY(-ll_top_control.getHeight()).setDuration(200);
+        ViewPropertyAnimator.animate(ll_top_control).translationY(ll_bottom_control.getHeight()).setDuration(200);
+        isShowControl = true;
+
+        //延时隐藏
+        handler.sendEmptyMessageDelayed(MESSAGE_HIDE_CONTROL,5000);
+    }
     /**
      * 播放指定序号的视频
      * @param position
@@ -199,7 +299,7 @@ public class VideoPlayerActivity extends BaseActivity{
 
         //使能上一个、下一个
         /*btn_next.setVisibility(View.VISIBLE);
-        btn_pre.setVisibility(View.VISIBLE);*/
+        selector_btn_defaultscreen.setVisibility(View.VISIBLE);*/
         btn_pre.setEnabled(position != 0);
         btn_next.setEnabled(position != arrayList.size() - 1);
     }
@@ -221,6 +321,10 @@ public class VideoPlayerActivity extends BaseActivity{
         volumn_seekbar.setMax(streamMaxVolume);
         volumn_seekbar.setProgress(currentVolume);
     }
+
+    /**
+     * 注册广播接收
+     */
     private void registerBatteryBroadcastReceiver()
     {
         intentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
@@ -235,11 +339,19 @@ public class VideoPlayerActivity extends BaseActivity{
         registerReceiver(broadcastReceiver, intentFilter);
 
     }
+
+    /**
+     * 更新显示时间
+     */
     private void updateSymTime()
     {
         tv_time.setText(StringUtil.formatSystemTime());
         handler.sendEmptyMessageDelayed(MESSAGE_UPDATE_TIME, 1000);
     }
+
+    /**
+     * 更新音量
+     */
     private void updateVolume()
     {
         if (isMute)
@@ -254,11 +366,17 @@ public class VideoPlayerActivity extends BaseActivity{
         }
 
     }
+
+    /**
+     * 处理按钮点击事件
+     * @param view
+     */
     @Override
     protected void processClick(View view) {
         switch (view.getId())
         {
             case R.id.btn_exit:
+                finish();
                 break;
             case R.id.btn_play:
                 if (videoView.isPlaying())
@@ -277,6 +395,16 @@ public class VideoPlayerActivity extends BaseActivity{
                 isMute = ! isMute;
                 updateVolume();
                 break;
+            case R.id.btn_screen:
+                isScreen = ! isScreen;
+                videoView.switchScreen();
+                //改变背景图片
+                btn_screen.setBackgroundResource(isScreen?R.drawable.selector_btn_defaultscreen:
+                        R.drawable.selector_btn_fullscreen);
+                break;
+            default:
+                break;
+
         }
     }
 
@@ -323,6 +451,11 @@ public class VideoPlayerActivity extends BaseActivity{
         }
     }
 
+    /**
+     * 滑动调节音量
+     * @param event
+     * @return
+     */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         int action = event.getAction();

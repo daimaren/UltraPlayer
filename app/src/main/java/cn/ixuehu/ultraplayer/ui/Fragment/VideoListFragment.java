@@ -49,6 +49,12 @@ public class VideoListFragment extends BaseFragment {
             }
         });
     }
+
+    /**
+     * 将Cursor数据解析出并放入集合
+     * @param cursor
+     * @return
+     */
     private ArrayList<VideoItem> cursorToList(Cursor cursor)
     {
         ArrayList<VideoItem> arrayList = new ArrayList<VideoItem>();
