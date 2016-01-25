@@ -159,7 +159,7 @@ public class VideoPlayerActivity extends BaseActivity{
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                handler.sendEmptyMessageDelayed(MESSAGE_HIDE_CONTROL,5000)
+                handler.sendEmptyMessageDelayed(MESSAGE_HIDE_CONTROL,5000);
 
             }
         });
@@ -201,14 +201,28 @@ public class VideoPlayerActivity extends BaseActivity{
         screenHeight = getWindowManager().getDefaultDisplay().getHeight();
         screenWidth = getWindowManager().getDefaultDisplay().getWidth();
 
-        //final VideoItem videoItem = (VideoItem) getIntent().getExtras().getSerializable("VideoItem");
-        arrayList = (ArrayList<VideoItem>) getIntent().getExtras().getSerializable("videoList");
-        currentPosition = getIntent().getIntExtra("currentPosition",1);
-
         registerBatteryBroadcastReceiver();
 
         updateSymTime();
         initVolume();
+
+        Uri uri = getIntent().getData();
+        if (uri != null)
+        {
+            //文件管理器里选择了视频播放
+            videoView.setVideoURI(uri);
+            //标题
+            tv_name.setText(uri.getPath());
+            //禁用上一个、下一个
+            btn_next.setEnabled(false);
+            btn_pre.setEnabled(false);
+        }
+        else
+        {
+            arrayList = (ArrayList<VideoItem>) getIntent().getExtras().getSerializable("videoList");
+            currentPosition = getIntent().getIntExtra("currentPosition", 1);
+            playVideo(currentPosition);
+        }
 
         videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
