@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.view.GestureDetector;
@@ -235,16 +236,22 @@ public class VideoPlayerActivity extends BaseActivity{
                 {
                     case MediaPlayer.MEDIA_ERROR_UNKNOWN:
                         //播放出错，跳转到VitamioPlayerActivity
-                        /*Intent intent = new Intent(VideoPlayerActivity.this,VitamioPlayerActivity.class)
+                        Intent intent = new Intent(VideoPlayerActivity.this,VitamioPlayerActivity.class);
                         if (uri != null)
                         {
-
+                            //传递Uri
+                            intent.setData(uri);
                         }
                         else
                         {
+                            //传递arraylist
                             Bundle bundle = new Bundle();
+                            bundle.putInt("currentPosition",currentPosition);
+                            bundle.putSerializable("videoList",arrayList);
+                            intent.putExtras(bundle);
                         }
-                        startActivity(intent);*/
+                        startActivity(intent);
+                        finish();
                         break;
                     default:
                         break;
@@ -394,7 +401,7 @@ public class VideoPlayerActivity extends BaseActivity{
         videoView.setVideoURI(Uri.parse(videoItem.getPath()));
 
         //使能上一个、下一个
-        /*btn_next.setVisibility(View.VISIBLE);
+        /*selector_btn_audio_pause.setVisibility(View.VISIBLE);
         selector_btn_defaultscreen.setVisibility(View.VISIBLE);*/
         btn_pre.setEnabled(position != 0);
         btn_next.setEnabled(position != arrayList.size() - 1);

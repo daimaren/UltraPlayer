@@ -48,4 +48,14 @@ public class StringUtil {
         SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
         return format.format(new Date());
     }
+
+    /**
+     * 去掉name的.mp3
+     * @param name
+     * @return
+     */
+    public static String formatAudioName(String name)
+    {
+        return name.substring(0,name.lastIndexOf("."));
+    }
 }

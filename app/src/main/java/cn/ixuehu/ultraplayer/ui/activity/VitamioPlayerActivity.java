@@ -1,12 +1,13 @@
 package cn.ixuehu.ultraplayer.ui.activity;
 
 
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
@@ -27,8 +28,10 @@ import java.util.ArrayList;
 import cn.ixuehu.ultraplayer.R;
 import cn.ixuehu.ultraplayer.base.BaseActivity;
 import cn.ixuehu.ultraplayer.bean.VideoItem;
-import cn.ixuehu.ultraplayer.ui.view.VideoView;
 import cn.ixuehu.ultraplayer.util.StringUtil;
+import io.vov.vitamio.LibsChecker;
+import io.vov.vitamio.MediaPlayer;
+import io.vov.vitamio.widget.VideoView;
 
 /**
  * 项目名：UltraPlayer
@@ -94,7 +97,9 @@ public class VitamioPlayerActivity extends BaseActivity{
     private boolean isScreen = false;
     @Override
     protected void initView() {
-        setContentView(R.layout.activity_video_player);
+        if (!LibsChecker.checkVitamioLibs(this))
+            return;
+        setContentView(R.layout.activity_vitamio_player);
         videoView = (VideoView) findViewById(R.id.videoView);
 
         btn_exit = (ImageView) findViewById(R.id.btn_exit);
@@ -196,7 +201,7 @@ public class VitamioPlayerActivity extends BaseActivity{
                 //播放完成
                 btn_play.setBackgroundResource(R.drawable.selector_btn_play);
                 //停止进度条更新
-                play_seekbar.setProgress(videoView.getDuration());
+                play_seekbar.setProgress((int) videoView.getDuration());
                 handler.removeMessages(MESSAGE_UPDATE_VIDEO);
             }
         });
@@ -234,6 +239,17 @@ public class VitamioPlayerActivity extends BaseActivity{
                 switch (i)
                 {
                     case MediaPlayer.MEDIA_ERROR_UNKNOWN:
+                        //弹出提示对话框
+                        AlertDialog.Builder builder = new AlertDialog.Builder(VitamioPlayerActivity.this);
+                        builder.setTitle("提示");
+                        builder.setMessage("播放出错,点击确定退出播放器");
+                        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                finish();
+                            }
+                        });
+                        builder.create().show();
                         break;
                     default:
                         break;
@@ -302,7 +318,7 @@ public class VitamioPlayerActivity extends BaseActivity{
                 //播放按钮变暂停
                 btn_play.setBackgroundResource(R.drawable.selector_btn_pause);
                 //初始化播放进度条
-                play_seekbar.setMax(videoView.getDuration());
+                play_seekbar.setMax((int) videoView.getDuration());
                 tv_current_position.setText("00:00");
                 tv_total_time.setText(StringUtil.formatVideoDuration(videoView.getDuration()));
                 updateVideoProgress();
@@ -383,14 +399,14 @@ public class VitamioPlayerActivity extends BaseActivity{
         videoView.setVideoURI(Uri.parse(videoItem.getPath()));
 
         //使能上一个、下一个
-        /*btn_next.setVisibility(View.VISIBLE);
+        /*selector_btn_audio_pause.setVisibility(View.VISIBLE);
         selector_btn_defaultscreen.setVisibility(View.VISIBLE);*/
         btn_pre.setEnabled(position != 0);
         btn_next.setEnabled(position != arrayList.size() - 1);
     }
     private void updateVideoProgress()
     {
-        play_seekbar.setProgress(videoView.getCurrentPosition());
+        play_seekbar.setProgress((int) videoView.getCurrentPosition());
         tv_current_position.setText(StringUtil.formatVideoDuration(videoView.getCurrentPosition()));
         handler.sendEmptyMessageDelayed(MESSAGE_UPDATE_VIDEO, 1000);
     }
