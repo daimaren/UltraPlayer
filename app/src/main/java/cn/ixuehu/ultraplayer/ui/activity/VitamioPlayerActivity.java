@@ -35,7 +35,7 @@ import cn.ixuehu.ultraplayer.util.StringUtil;
  * 包名：cn.ixuehu.ultraplayer.ui.activity
  * Created by daimaren on 2016/1/22.
  */
-public class VideoPlayerActivity extends BaseActivity{
+public class VitamioPlayerActivity extends BaseActivity{
     private VideoView videoView;
     //顶部控制控件
     private ImageView btn_exit,btn_pre,btn_play,btn_next,btn_screen;
@@ -51,7 +51,7 @@ public class VideoPlayerActivity extends BaseActivity{
 
     private LinearLayout ll_loading;
     private LinearLayout ll_buffering;
-    private Uri uri;
+
     //广播
     private IntentFilter intentFilter;
     private BroadcastReceiver broadcastReceiver;
@@ -234,17 +234,6 @@ public class VideoPlayerActivity extends BaseActivity{
                 switch (i)
                 {
                     case MediaPlayer.MEDIA_ERROR_UNKNOWN:
-                        //播放出错，跳转到VitamioPlayerActivity
-                        /*Intent intent = new Intent(VideoPlayerActivity.this,VitamioPlayerActivity.class)
-                        if (uri != null)
-                        {
-
-                        }
-                        else
-                        {
-                            Bundle bundle = new Bundle();
-                        }
-                        startActivity(intent);*/
                         break;
                     default:
                         break;
@@ -265,7 +254,7 @@ public class VideoPlayerActivity extends BaseActivity{
         updateSymTime();
         initVolume();
 
-        uri = getIntent().getData();
+        Uri uri = getIntent().getData();
         if (uri != null)
         {
             //文件管理器里选择了视频播放
