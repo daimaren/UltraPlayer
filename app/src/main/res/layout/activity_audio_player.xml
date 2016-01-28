@@ -52,6 +52,8 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:layout_gravity="bottom"
+        android:layout_margin="10dp"
+        android:paddingBottom="15dp"
         >
         <TextView
             android:id="@+id/tv_time"
@@ -62,23 +64,53 @@
             android:text="time"
             android:layout_gravity="right"/>
         <SeekBar
+            android:id="@+id/seekbar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:minHeight="20dp"
             android:maxHeight="20dp"
             android:thumb="@drawable/audio_seek_thumb"
+            android:thumbOffset="0dp"
             android:progressDrawable="@drawable/audio_progress_drawable"
             />
         <LinearLayout
-            android:id="@+id/seekbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:gravity="center"
+            android:orientation="horizontal">
             <ImageView
+                android:id="@+id/btn_paly_mode"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:src="@drawable/selector_audio_mode_normal"
                 />
+            <ImageView
+                android:id="@+id/btn_paly_pre"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginLeft="10dp"
+                android:src="@drawable/selector_btn_audio_pre"
+                />
+            <ImageView
+                android:id="@+id/btn_btn_play"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginLeft="10dp"
+                android:src="@drawable/selector_btn_audio_pause"/>
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:id="@+id/btn_next"
+                android:layout_marginLeft="10dp"
+                android:src="@drawable/selector_btn_audio_next"/>
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginLeft="10dp"
+                android:src="@drawable/btn_lyrics"
+                />
         </LinearLayout>
     </LinearLayout>
-
 </LinearLayout>
