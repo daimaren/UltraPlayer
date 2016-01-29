@@ -12,7 +12,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -113,17 +112,28 @@ public class AudioPlayerActivity extends BaseActivity{
     @Override
     protected void initData() {
         registerReceiver();
-        //Intent获取传递的数据
-        audioItemArrayList = (ArrayList<AudioItem>) getIntent().getExtras().getSerializable("audioList");
-        currentPosition = getIntent().getIntExtra("currentPosition",0);
-        Log.d("AudioPlayerActivity", audioItemArrayList.get(currentPosition).getPath());
         //绑定AudioPlayService
         Intent intent = new Intent(this, AudioPlayService.class);
-        //给Service传递音乐列表数据
-        Bundle bundle = new Bundle();
-        bundle.putSerializable("audioList", audioItemArrayList);
-        bundle.putInt("currentPosition", currentPosition);
-        intent.putExtras(bundle);
+
+        boolean isFromNotification = getIntent().getExtras().getBoolean("isFromNotification", false);
+        if (isFromNotification == true)
+        {
+            //来自通知栏点击
+            intent.putExtra("isFromNotification",true);
+            intent.putExtra("viewAction",getIntent().getExtras().getInt("viewAction",-1));
+        }
+        else
+        {
+            //Intent获取传递的数据
+            audioItemArrayList = (ArrayList<AudioItem>) getIntent().getExtras().getSerializable("audioList");
+            currentPosition = getIntent().getIntExtra("currentPosition",0);
+            //Log.d("AudioPlayerActivity", audioItemArrayList.get(currentPosition).getPath());
+            //给Service传递音乐列表数据
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("audioList", audioItemArrayList);
+            bundle.putInt("currentPosition", currentPosition);
+            intent.putExtras(bundle);
+        }
         startService(intent);
         audioPlayConnection = new AudioPlayConnection();
         bindService(intent, audioPlayConnection, Service.BIND_AUTO_CREATE);
