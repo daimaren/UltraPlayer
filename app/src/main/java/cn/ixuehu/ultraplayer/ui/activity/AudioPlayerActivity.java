@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -62,7 +63,7 @@ public class AudioPlayerActivity extends BaseActivity{
         setContentView(R.layout.activity_audio_player);
         btn_play = (ImageView) findViewById(R.id.btn_play);
         btn_paly_mode = (ImageView) findViewById(R.id.btn_paly_mode);
-        btn_pre = (ImageView) findViewById(R.id.btn_pre);
+        btn_pre = (ImageView) findViewById(R.id.btn_play_pre);
         btn_next = (ImageView) findViewById(R.id.btn_next);
         tv_title = (TextView) findViewById(R.id.tv_title);
         tv_time = (TextView) findViewById(R.id.tv_time);
@@ -92,6 +93,8 @@ public class AudioPlayerActivity extends BaseActivity{
                     //人为拖动，改变显示时间
                     tv_time.setText(StringUtil.formatVideoDuration(i)+":/" +
                             StringUtil.formatVideoDuration(audioServiceBinder.getDuration()));
+                    //改变播放时间
+                    audioServiceBinder.seekTo(i);
                 }
             }
 
@@ -109,10 +112,11 @@ public class AudioPlayerActivity extends BaseActivity{
 
     @Override
     protected void initData() {
+        registerReceiver();
         //Intent获取传递的数据
         audioItemArrayList = (ArrayList<AudioItem>) getIntent().getExtras().getSerializable("audioList");
         currentPosition = getIntent().getIntExtra("currentPosition",0);
-
+        Log.d("AudioPlayerActivity", audioItemArrayList.get(currentPosition).getPath());
         //绑定AudioPlayService
         Intent intent = new Intent(this, AudioPlayService.class);
         //给Service传递音乐列表数据
@@ -120,14 +124,18 @@ public class AudioPlayerActivity extends BaseActivity{
         bundle.putSerializable("audioList", audioItemArrayList);
         bundle.putInt("currentPosition", currentPosition);
         intent.putExtras(bundle);
+        startService(intent);
         audioPlayConnection = new AudioPlayConnection();
         bindService(intent, audioPlayConnection, Service.BIND_AUTO_CREATE);
     }
     private void registerReceiver()
     {
         audioServiceBroadcastReceiver = new AudioServiceBroadcastReceiver();
-        IntentFilter intentFilter =new IntentFilter(AudioPlayService.ACTION_MEDIA_PREPARED);
-        registerReceiver(audioServiceBroadcastReceiver,intentFilter);
+        IntentFilter intentFilter = new IntentFilter(AudioPlayService.ACTION_MEDIA_PREPARED);
+        intentFilter.addAction(AudioPlayService.ACION_MEDIA_COMPLETION);
+        intentFilter.addAction(AudioPlayService.ACION_MEDIA_FIRST);
+        intentFilter.addAction(AudioPlayService.ACION_MEDIA_LAST);
+        registerReceiver(audioServiceBroadcastReceiver, intentFilter);
     }
     class AudioServiceBroadcastReceiver extends BroadcastReceiver
     {
@@ -163,10 +171,6 @@ public class AudioPlayerActivity extends BaseActivity{
             {
                 Toast.makeText(AudioPlayerActivity.this, "当前是最后一首", 0).show();
             }
-
-
-
-
         }
     }
     class AudioPlayConnection implements ServiceConnection
@@ -190,6 +194,8 @@ public class AudioPlayerActivity extends BaseActivity{
                 finish();
                 break;
             case R.id.btn_paly_mode:
+                audioServiceBinder.switchMode();
+                updatePlayModeBg();
                 break;
             case R.id.btn_play:
                 if (audioServiceBinder.isPlaying())
@@ -202,8 +208,10 @@ public class AudioPlayerActivity extends BaseActivity{
                 updatePlayBtnBg();
                 break;
             case R.id.btn_pre:
+                audioServiceBinder.playPre(true);
                 break;
             case R.id.btn_next:
+                audioServiceBinder.playNext(true);
                 break;
             default:
                 break;
@@ -214,6 +222,24 @@ public class AudioPlayerActivity extends BaseActivity{
     {
         btn_play.setBackgroundResource(audioServiceBinder.isPlaying()?R.drawable.selector_btn_audio_pause
                 :R.drawable.selector_btn_audio_play);
+    }
+    private void updatePlayModeBg()
+    {
+        int currentPlayMode = audioServiceBinder.getCurrentPlayMode();
+        switch (currentPlayMode)
+        {
+            case AudioPlayService.MODE_ORDER:
+                btn_paly_mode.setBackgroundResource(R.drawable.selector_audio_mode_normal);
+                break;
+            case AudioPlayService.MODE_SINGLE_REPEAT:
+                btn_paly_mode.setBackgroundResource(R.drawable.selector_audio_mode_single_repeat);
+                break;
+            case AudioPlayService.MODE_ALL_REPEAT:
+                btn_paly_mode.setBackgroundResource(R.drawable.selector_audio_mode_all_repeat);
+                break;
+            default:
+                break;
+        }
     }
     private void updatePlayProgress()
     {

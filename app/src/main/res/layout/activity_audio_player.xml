@@ -14,7 +14,7 @@
             android:id="@+id/btn_back"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/selector_btn_back"/>
+            android:background="@drawable/selector_btn_back"/>
         <TextView
             android:id="@+id/tv_title"
             android:layout_width="wrap_content"
@@ -32,14 +32,16 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:src="@drawable/audio_player_anim"/>
+            android:background="@drawable/audio_player_anim"/>
         <TextView
             android:id="@+id/tv_artist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignBottom="@+id/iv_anim"
             android:textColor="@color/white"
-            android:textSize="18sp"/>
+            android:textSize="18sp"
+            android:layout_centerHorizontal="true"
+            />
     </RelativeLayout>
     <!--显示歌词的自定义View,填充剩余部分-->
     <View
@@ -65,7 +67,7 @@
             android:layout_gravity="right"/>
         <SeekBar
             android:id="@+id/seekbar"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:minHeight="20dp"
@@ -84,32 +86,32 @@
                 android:id="@+id/btn_paly_mode"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:src="@drawable/selector_audio_mode_normal"
+                android:background="@drawable/selector_audio_mode_normal"
                 />
             <ImageView
-                android:id="@+id/btn_paly_pre"
+                android:id="@+id/btn_play_pre"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_marginLeft="10dp"
-                android:src="@drawable/selector_btn_audio_pre"
+                android:background="@drawable/selector_btn_audio_pre"
                 />
             <ImageView
-                android:id="@+id/btn_btn_play"
+                android:id="@+id/btn_play"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_marginLeft="10dp"
-                android:src="@drawable/selector_btn_audio_pause"/>
+                android:background="@drawable/selector_btn_audio_pause"/>
             <ImageView
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:id="@+id/btn_next"
                 android:layout_marginLeft="10dp"
-                android:src="@drawable/selector_btn_audio_next"/>
+                android:background="@drawable/selector_btn_audio_next"/>
             <ImageView
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_marginLeft="10dp"
-                android:src="@drawable/btn_lyrics"
+                android:background="@drawable/btn_lyrics"
                 />
         </LinearLayout>
     </LinearLayout>
